@@ -34,6 +34,10 @@ class ModelRegistry:
                 else:
                     model_def = ModelDefinition.model_validate(model)
 
+                # Only include models that are not explicitly disabled
+                if model_def.enabled is False:
+                    continue
+
                 normalized.append(
                     RegistryEntry(
                         id=model_def.id,

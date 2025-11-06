@@ -105,6 +105,9 @@ class ModelDefinition(BaseModel):
     note: Optional[str] = Field(
         None, description="Optional additional guidance about the model"
     )
+    enabled: bool = Field(
+        True, description="Whether this model is enabled and should be listed"
+    )
 
 
 class StorageConfig(BaseModel):
