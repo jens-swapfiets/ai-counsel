@@ -135,42 +135,66 @@ defaults:
   max_rounds: 5
   timeout_per_round: 120
 
+# model_registry:
+#   Allows surfacing a curated list of models in MCP clients (e.g., for pickers).
+#   - Use 'enabled: true' to show a model, 'enabled: false' to hide it.
+#   - If 'enabled' is omitted, the model is shown by default.
 model_registry:
   claude:
-    - id: "claude-sonnet-4-5-20250929"
+    - id: "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
       label: "Claude Sonnet 4.5"
       tier: "balanced"
       default: true
+      enabled: false
     - id: "claude-haiku-4-5-20251001"
       label: "Claude Haiku 4.5"
       tier: "speed"
+      enabled: false
     - id: "claude-opus-4-1-20250805"
       label: "Claude Opus 4.1"
       tier: "premium"
+      enabled: false
   codex:
     - id: "gpt-5-codex"
       label: "GPT-5 Codex"
       tier: "coding"
       default: true
+      enabled: true
     - id: "gpt-5"
       label: "GPT-5"
       tier: "general"
+      enabled: true
   droid:
     - id: "claude-sonnet-4-5-20250929"
       label: "Claude Sonnet 4.5 (via Droid)"
       tier: "balanced"
       default: true
+      enabled: false
     - id: "gpt-5-codex"
       label: "GPT-5 Codex (via Droid)"
       tier: "coding"
+      enabled: false
     - id: "glm-4.6"
       label: "Droid Core (GLM-4.6)"
       tier: "open-source"
+      enabled: false
   gemini:
     - id: "gemini-2.5-pro"
       label: "Gemini 2.5 Pro"
       tier: "general"
       default: true
+      enabled: true
+  lmstudio:
+    - id: "microsoft/phi-4-mini-reasoning"
+      label: "Phi-4 Mini Reasoning (LM Studio)"
+      tier: "local"
+      default: true
+      enabled: true
+    - id: "ibm/granite-3.2-8b"
+      label: "Granite 3.2-8B (LM Studio)"
+      tier: "local"
+      default: false
+      enabled: true
 
 storage:
   transcripts_dir: "transcripts"
