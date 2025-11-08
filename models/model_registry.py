@@ -1,21 +1,35 @@
 """Model registry utilities derived from configuration."""
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Dict, Iterable, Optional
+import builtins
 
 from models.config import Config, ModelDefinition
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
 class RegistryEntry:
-    """Normalized model definition entry."""
+    """Normalized model definition entry.
+    
+    Attributes:
+        id: Unique model identifier used by adapter
+        label: Human-friendly display name for UI dropdowns
+        tier: Optional tier classification (speed, premium, coding, etc.)
+        note: Optional descriptive text shown in model picker tooltips
+        default: Whether marked as recommended default for this adapter
+        enabled: Whether model is active and available for use
+    """
 
     id: str
     label: str
     tier: Optional[str] = None
     note: Optional[str] = None
     default: bool = False
+    enabled: bool = True
 
 
 class ModelRegistry:
@@ -45,6 +59,7 @@ class ModelRegistry:
                         tier=model_def.tier,
                         note=model_def.note,
                         default=bool(model_def.default),
+                        enabled=bool(model_def.enabled),
                     )
                 )
 
@@ -65,35 +80,65 @@ class ModelRegistry:
 
         return self._entries.keys()
 
-    def list(self) -> Dict[str, list[dict[str, str]]]:
-        """Return a serializable map of model options by adapter."""
+    def list(self) -> Dict[str, list[dict[str, str | bool]]]:
+        """Return a serializable map of enabled model options by adapter."""
 
-        result: Dict[str, list[dict[str, str]]] = {}
+        result: Dict[str, list[dict[str, str | bool]]] = {}
         for cli, entries in self._entries.items():
-            result[cli] = [self._entry_to_dict(entry) for entry in entries]
+            enabled_entries = [e for e in entries if e.enabled]
+            result[cli] = [self._entry_to_dict(entry) for entry in enabled_entries]
         return result
 
-    def list_for_adapter(self, cli: str) -> list[RegistryEntry]:
-        """Return entries for the given adapter (empty if none configured)."""
+    def list_for_adapter(self, cli: str) -> builtins.list[RegistryEntry]:
+        """Return enabled entries for the given adapter (empty if none configured)."""
 
-        return list(self._entries.get(cli, []))
+        entries = self._entries.get(cli, [])
+        return [entry for entry in entries if entry.enabled]
+
+    def get_all_models(self, cli: str) -> builtins.list[RegistryEntry]:
+        """Return all entries for the given adapter, including disabled ones.
+
+        Useful for administrative interfaces and debugging.
+        """
+
+        return builtins.list(self._entries.get(cli, []))
 
     def allowed_ids(self, cli: str) -> set[str]:
-        """Return the set of allowed model IDs for an adapter."""
+        """Return the set of allowed (enabled) model IDs for an adapter."""
 
-        return {entry.id for entry in self._entries.get(cli, [])}
+        return {entry.id for entry in self._entries.get(cli, []) if entry.enabled}
 
     def get_default(self, cli: str) -> Optional[str]:
-        """Return the default model id for an adapter, if configured."""
+        """Return the default model id for an adapter, if configured.
+
+        Only considers enabled models. If the marked default is disabled,
+        returns the first enabled model. If no enabled models, returns None.
+        """
 
         entries = self._entries.get(cli, [])
         if not entries:
             return None
 
-        for entry in entries:
+        # Filter to enabled models only
+        enabled_entries = [e for e in entries if e.enabled]
+        if not enabled_entries:
+            return None
+
+        # Try to find the marked default among enabled models
+        for entry in enabled_entries:
             if entry.default:
                 return entry.id
-        return entries[0].id
+
+        # Fallback to first enabled model
+        # Check if we're skipping a disabled default (for operational visibility)
+        all_defaults = [e for e in entries if e.default]
+        if all_defaults and not all_defaults[0].enabled:
+            logger.debug(
+                f"Marked default '{all_defaults[0].id}' for adapter '{cli}' is disabled. "
+                f"Falling back to first enabled model: '{enabled_entries[0].id}'"
+            )
+        
+        return enabled_entries[0].id
 
     def is_allowed(self, cli: str, model_id: str) -> bool:
         """Check whether the given model id is allowlisted for the adapter."""
@@ -106,10 +151,17 @@ class ModelRegistry:
     # Internal helpers
     # ------------------------------------------------------------------
     @staticmethod
-    def _entry_to_dict(entry: RegistryEntry) -> dict[str, str]:
-        """Serialize an entry for MCP responses."""
+    def _entry_to_dict(
+        entry: RegistryEntry, include_enabled: bool = False
+    ) -> dict[str, str | bool]:
+        """Serialize an entry for MCP responses.
 
-        payload = {
+        Args:
+            entry: Registry entry to serialize
+            include_enabled: Whether to include the enabled status (useful for admin interfaces)
+        """
+
+        payload: dict[str, str | bool] = {
             "id": entry.id,
             "label": entry.label,
         }
@@ -119,4 +171,6 @@ class ModelRegistry:
             payload["note"] = entry.note
         if entry.default:
             payload["default"] = True
+        if include_enabled:
+            payload["enabled"] = entry.enabled
         return payload
