@@ -58,24 +58,25 @@ cli_tools:
     command: "gemini"
     args:
       [
-        "--include-directories",
-        "{working_directory}",
+        "-s",
+        "-e",
+        "",
         "-m",
         "{model}",
-        "-p",
         "{prompt}",
       ]
     timeout: 180
     # Valid models: "gemini-2.5-pro" (default) or other Gemini identifiers
     #
-    # Working Directory Configuration:
-    # - --include-directories {working_directory}: Dynamically allows access to the client's working directory
-    # - The {working_directory} placeholder is replaced at runtime with the actual directory path
-    # - This enables evidence-based deliberation tools to read files from the correct repository
-    # Note: Without this flag, Gemini blocks access outside workspace with error:
-    #       "File path must be within one of the workspace directories"
-    # Known Issue: Setting includeDirectories in .gemini/settings.json is broken (GitHub issue #5512)
-    #              Must use command-line flag until fixed
+    # Sandbox Mode (-s):
+    # - Enables sandbox mode to prevent MCP extension loading issues that cause API errors
+    # - Gemini CLI v0.16.0 has a bug where MCP extension initialization corrupts conversation history
+    # - This causes duplicate user messages in the API request, leading to 400 "invalid argument" errors
+    # - Sandbox mode works around this by isolating the Gemini CLI from MCP servers
+    #
+    # Note: --include-directories flag removed due to sandbox mode limitations
+    # - Sandbox mode prevents file access outside the current working directory
+    # - This is a known trade-off in Gemini CLI v0.16.0
 
   llamacpp:
     command: "llama-cli"
@@ -158,11 +159,11 @@ model_registry:
       label: "Claude Sonnet 4.5"
       tier: "balanced"
       default: true
-      enabled: true
+      enabled: false
     - id: "claude-haiku-4-5-20251001"
       label: "Claude Haiku 4.5"
       tier: "speed"
-      enabled: true
+      enabled: false
     - id: "claude-opus-4-1-20250805"
       label: "Claude Opus 4.1"
       tier: "premium"
@@ -180,17 +181,17 @@ model_registry:
     - id: "gpt-5"
       label: "GPT-5"
       tier: "general"
-      enabled: true
+      enabled: false
   droid:
     - id: "claude-sonnet-4-5-20250929"
       label: "Claude Sonnet 4.5 (via Droid)"
       tier: "balanced"
       default: true
-      enabled: true
+      enabled: false
     - id: "gpt-5.1-codex"
       label: "GPT-5.1 Codex (via Droid)"
       tier: "coding"
-      enabled: true
+      enabled: false
     - id: "gpt-5-codex"
       label: "GPT-5 Codex (via Droid)"
       tier: "coding"
@@ -198,16 +199,27 @@ model_registry:
     - id: "glm-4.6"
       label: "Droid Core (GLM-4.6)"
       tier: "open-source"
-      enabled: true
+      enabled: false
     - id: "claude-haiku-4-5-20251001"
       label: "Claude Haiku 4.5"
       tier: "speed"
-      enabled: true
+      enabled: false
   gemini:
     - id: "gemini-2.5-pro"
       label: "Gemini 2.5 Pro"
       tier: "general"
       default: true
+      enabled: true
+  lmstudio:
+    - id: "microsoft/phi-4-mini-reasoning"
+      label: "Phi-4 Mini Reasoning (LM Studio)"
+      tier: "local"
+      default: true
+      enabled: true
+    - id: "ibm/granite-3.2-8b"
+      label: "Granite 3.2-8B (LM Studio)"
+      tier: "local"
+      default: false
       enabled: true
 
 storage:
