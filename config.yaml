@@ -169,19 +169,25 @@ model_registry:
       tier: "premium"
       enabled: false
   codex:
+    - id: "gpt-5.1-codex-max"
+      label: "GPT-5.1 Codex Max"
+      tier: "coding"
+      default: false
+      enabled: true
     - id: "gpt-5.1-codex"
       label: "GPT-5.1 Codex"
       tier: "coding"
       default: true
       enabled: true
-    - id: "gpt-5-codex"
-      label: "GPT-5 Codex"
+    - id: "gpt-5.1-codex-mini"
+      label: "GPT-5.1 Codex Mini"
       tier: "coding"
-      enabled: false
-    - id: "gpt-5"
-      label: "GPT-5"
+      default: false
+      enabled: true
+    - id: "gpt-5.1"
+      label: "GPT-5.1"
       tier: "general"
-      enabled: false
+      enabled: true
   droid:
     - id: "claude-sonnet-4-5-20250929"
       label: "Claude Sonnet 4.5 (via Droid)"

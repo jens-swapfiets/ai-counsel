@@ -669,12 +669,12 @@ After your analysis, please cast your vote using the following format:
 VOTE: {"option": "Your choice", "confidence": 0.85, "rationale": "Brief explanation"}
 
 Where:
-- option: Your chosen option (e.g., "Option A", "Yes", "Approve")
+- option: Your chosen option (use the exact wording appropriate to the question - e.g., "Yes", "No", "Approve", or specific option labels if provided)
 - confidence: Your confidence level from 0.0 (no confidence) to 1.0 (absolute certainty)
 - rationale: Brief explanation for your vote
 
-Example:
-VOTE: {"option": "Option A", "confidence": 0.9, "rationale": "Lower risk and better architectural fit"}
+Example for a yes/no question:
+VOTE: {"option": "Yes", "confidence": 0.9, "rationale": "The approach demonstrates clear advantages in robustness and transparency"}
 """.strip()
 
     def _enhance_prompt_with_voting(self, prompt: str) -> str:
