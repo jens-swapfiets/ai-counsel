@@ -106,8 +106,9 @@ class CodexAdapter(BaseCLIAdapter):
 
         # Inject reasoning effort via config override if not already present
         # The codex CLI uses `-c` flag for config overrides with dotted path notation
+        # Multiple `-c` flags are allowed, so we only check if our specific override exists
         config_override = f"model_reasoning_effort={reasoning_effort}"
-        if "-c" not in formatted_args and config_override not in formatted_args:
+        if config_override not in " ".join(formatted_args):
             # Insert after "exec" command but before other flags
             if "exec" in formatted_args:
                 exec_index = formatted_args.index("exec")
